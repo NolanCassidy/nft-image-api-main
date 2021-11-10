@@ -19,7 +19,7 @@ app.get('/', function(req, res) {
   res.send('Get ready for NFT!');
 })
 
-app.get('/api/token/:token_id', function(req, res) {
+app.get('/api/token/:token_id', function(req, res, next) {
   const tokenId = parseInt(req.params.token_id).toString()
   axios.get('https://api.etherscan.io/api?module=stats&action=tokensupply&contractaddress=0xbad6186E92002E312078b5a1dAfd5ddf63d3f731&apikey=N5UZBNT4F5H5NDNXF7QYSSPUBZ3UIM9HS3')
   .then(function (response) {
