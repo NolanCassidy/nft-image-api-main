@@ -21,13 +21,23 @@ app.get('/', function(req, res) {
   res.send('Meta Llama API');
 })
 
-var memoryCache = module.exports = function () {
-    var cache = {};
-    return {
-        get: function (key) { return cache[key]; },
-        set: function (key, val) { cache[key] = val; }
-    }
-}
+app.get('/api/image/:token_id', function(req, res) {
+  const tokenId = parseInt(req.params.token_id).toString();
+  if(parseInt(supplyCache) >= parseInt(tokenId)){
+      var base64Img = require('base64-img');
+      var imageData1 = base64Img.base64Sync(`views/images/${tokenId}.png`);
+      var base64Data = imageData1.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+      var img = Buffer.from(base64Data, 'base64');
+
+      res.writeHead(200, {
+        'Content-Type': 'image/png',
+        'Content-Length': img.length
+      });
+      res.end(img);
+  }else{
+    res.status(404).send('This nft does not exist yet.');
+  }
+})
 
 app.get('/api/token/:token_id', function(req, res, next) {
   const tokenId = parseInt(req.params.token_id).toString()
@@ -81,5 +91,12 @@ app.get('/api/token/:token_id', function(req, res, next) {
 })
 
 app.listen(app.get('port'), function() {
+  axios.get('https://api.etherscan.io/api?module=stats&action=tokensupply&contractaddress=0xbad6186E92002E312078b5a1dAfd5ddf63d3f731&apikey=N5UZBNT4F5H5NDNXF7QYSSPUBZ3UIM9HS3')
+  .then(function (response) {
+    supplyCache = response.data.result;
+  })
+  .catch(function (error) {
+    console.error('This contract or token does not exist.');
+  });
   console.log('Node app is running on port', app.get('port'));
 })
