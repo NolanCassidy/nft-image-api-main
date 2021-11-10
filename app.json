@@ -1,0 +1,7 @@
+{
+  "name": "NFT-API",
+  "description": "It is most common available item in SwapAll ecosystem",
+  "repository": "https://github.com/zj-yesbit/nft-image-api",
+  "logo": "https://swapallapk.oss-cn-hongkong.aliyuncs.com/NFT-IMAGE/1.png",
+  "keywords": ["nft", "crypto", "opensea", "erc721", "erc1155", "node", "express", "static"]
+}
