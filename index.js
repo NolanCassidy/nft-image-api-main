@@ -6,6 +6,7 @@ const db = require('./src/database')
 const axios = require('axios');
 
 const PORT = process.env.PORT || 5000
+var supplyCache = 0;
 
 const app = express()
   .set('port', PORT)
@@ -16,33 +17,57 @@ const app = express()
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/', function(req, res) {
-  res.send('Get ready for NFT!');
+  res.send('Meta Llama API');
 })
+
+var memoryCache = module.exports = function () {
+    var cache = {};
+    return {
+        get: function (key) { return cache[key]; },
+        set: function (key, val) { cache[key] = val; }
+    }
+}
 
 app.get('/api/token/:token_id', function(req, res, next) {
   const tokenId = parseInt(req.params.token_id).toString()
-  axios.get('https://api.etherscan.io/api?module=stats&action=tokensupply&contractaddress=0xbad6186E92002E312078b5a1dAfd5ddf63d3f731&apikey=N5UZBNT4F5H5NDNXF7QYSSPUBZ3UIM9HS3')
-  .then(function (response) {
-    // handle success
-    console.log(response.result);
-    if(response.result >= tokenId){
-      const nft = db[tokenId]
-      const  Description = nft.Description
-      const data = {
-        'description' : Description,
-        'image': `${HOST}/${tokenId}.png`,
-        'name': nft.name
+    // console.log(tokenId)
+    // console.log(supplyCache)
+  if(parseInt(supplyCache) < parseInt(tokenId)){
+    axios.get('https://api.etherscan.io/api?module=stats&action=tokensupply&contractaddress=0xbad6186E92002E312078b5a1dAfd5ddf63d3f731&apikey=N5UZBNT4F5H5NDNXF7QYSSPUBZ3UIM9HS3')
+    .then(function (response) {
+      // handle success
+      // console.log('Not Cached')
+      // console.log(response.data.result);
+      supplyCache = response.data.result;
+      if(response.data.result >= tokenId){
+        const nft = db[tokenId]
+        const  Description = nft.Description
+        const data = {
+          'description' : Description,
+          'image': `${HOST}/${tokenId}.png`,
+          'name': nft.name
+        }
+        res.send(data)
+      }else{
+        res.status(404).send('Stop digging around, you have nothing to find here.');
       }
-      res.send(data)
-    }else{
-      next('Stop digging around, you have nothing to find here.');
+    })
+    .catch(function (error) {
+      // handle error
+      // console.log(error);
+      res.status(404).send('This contract or token does not exist.');
+    });
+  }else{
+    // console.log('Cached');
+    const nft = db[tokenId]
+    const  Description = nft.Description
+    const data = {
+      'description' : Description,
+      'image': `${HOST}/${tokenId}.png`,
+      'name': nft.name
     }
-  })
-  .catch(function (error) {
-    // handle error
-    console.log(error);
-    next(error);
-  });
+    res.send(data)
+  }
 
 })
 
