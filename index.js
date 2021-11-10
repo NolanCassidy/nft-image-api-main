@@ -24,6 +24,7 @@ app.get('/', function(req, res) {
 app.get('/api/image/:token_id', function(req, res) {
   const tokenId = parseInt(req.params.token_id).toString();
   if(parseInt(supplyCache) >= parseInt(tokenId)){
+    try{
       var base64Img = require('base64-img');
       var imageData1 = base64Img.base64Sync(`views/images/${tokenId}.png`);
       var base64Data = imageData1.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
@@ -34,6 +35,9 @@ app.get('/api/image/:token_id', function(req, res) {
         'Content-Length': img.length
       });
       res.end(img);
+    } catch (err){
+      res.status(404).send('Please try again soon that token was not found yet.');
+    }
   }else{
     res.status(404).send('This nft does not exist yet.');
   }
